@@ -16,3 +16,4 @@ error.log
 .aqueductpid
 .aqueductsignal
 api.log*
+.idea/
