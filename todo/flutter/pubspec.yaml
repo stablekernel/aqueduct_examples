@@ -3,6 +3,8 @@ description: A new Flutter project.
 
 dependencies:
   http: any
+  todo_shared:
+    path: ../shared
   flutter:
     sdk: flutter
 

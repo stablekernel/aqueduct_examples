@@ -55,7 +55,7 @@ packages:
     version: "1.4.2"
   sky_engine:
     description:
-      path: "../../../../../Projects/flutter/bin/cache/pkg/sky_engine"
+      path: "../../../../Projects/flutter/bin/cache/pkg/sky_engine"
       relative: true
     source: path
     version: "0.0.99"
@@ -77,6 +77,12 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.2"
+  todo_shared:
+    description:
+      path: "../shared"
+      relative: true
+    source: path
+    version: "0.0.1"
   typed_data:
     description:
       name: typed_data
