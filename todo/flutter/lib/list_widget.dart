@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'store.dart';
-import 'model.dart';
+import 'package:todo_shared/shared.dart';
 
 class NotesWidget extends StatefulWidget {
   NotesWidget({Key key, this.title}) : super(key: key);

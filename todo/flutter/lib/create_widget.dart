@@ -1,9 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-
-import 'model.dart';
-import 'store.dart';
+import 'package:todo_shared/shared.dart';
 
 class CreateNoteWidget extends StatefulWidget {
   CreateNoteWidget({Key key}) : super(key: key);
