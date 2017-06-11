@@ -21,8 +21,8 @@ class TodoApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       routes: {
-        "/": (_) => new LoginWidget(),
-        "/home": (_) => new NotesWidget(title: "Todo"),
+        "/login": (_) => new LoginWidget(),
+        "/": (_) => new NotesWidget(title: "Todo"),
         "/create": (_) => new CreateNoteWidget()
       }
     );

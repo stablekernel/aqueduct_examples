@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'login_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:todo_shared/shared.dart';
 
@@ -14,25 +15,41 @@ class NotesWidget extends StatefulWidget {
 
 class _NotesWidgetState extends State<NotesWidget> {
   List<Note> notes;
-  StreamSubscription subscription;
+  List<StreamSubscription> subscriptions;
 
   @override
   void initState() {
     super.initState();
-    subscription = Store.defaultInstance.noteController.listen((notes) {
-      setState(() {
-        this.notes = notes;
-      });
-    }, onError: (err) {
+    subscriptions = [
+      Store.defaultInstance.noteController.listen((notes) {
+        setState(() {
+          this.notes = notes;
+        });
+      }, onError: (err) {
+        if (err is UnauthenticatedException) {
+          showDialog(context: context, barrierDismissible: false,
+              child: new LoginWidget());
+        }
+      }),
 
-    });
+      Store.defaultInstance.userController.listen((user) {
+        if (user != null) {
+          Store.defaultInstance.noteController.getNotes();
+        } else {
+          setState(() {
+            notes = null;
+          });
+        }
+      })
+    ];
+
     Store.defaultInstance.noteController.getNotes();
   }
 
   @override
   void dispose() {
     super.dispose();
-    subscription.cancel();
+    subscriptions.forEach((s) => s.cancel());
   }
 
   void createNewNote() {
@@ -45,10 +62,21 @@ class _NotesWidgetState extends State<NotesWidget> {
     return new TableRow(
         children: [
           new Container(
-              padding: const EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 10.0),
-              child: new Text(note.title)
+              padding: const EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
+              child: new Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  new Text(note.title),
+                  new Padding(padding: const EdgeInsets.all(5.0)),
+                  new Text(dateString(note.createdAt), style: new TextStyle(color: Colors.grey))],
+              )
+
           )
     ]);
+  }
+
+  String dateString(DateTime dateTime) {
+    return "${dateTime.month}/${dateTime.day}/${dateTime.year}";
   }
 
   @override
@@ -58,7 +86,7 @@ class _NotesWidgetState extends State<NotesWidget> {
         title: new Text(widget.title),
       ),
       body: new Container(
-        padding: const EdgeInsets.all(20.0),
+//        padding: const EdgeInsets.all(20.0),
         child: new Table(
             children: tableRows
         ),

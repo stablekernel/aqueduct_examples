@@ -21,7 +21,6 @@ class _CreateNoteState extends State<CreateNoteWidget> {
   void initState() {
     super.initState();
     subscription = Store.defaultInstance.noteController.listen((notes) {
-      isSaving = false;
       Navigator.pop(context);
     }, onError: (err) {
       isSaving = false;
@@ -54,7 +53,6 @@ class _CreateNoteState extends State<CreateNoteWidget> {
     if (contentsController.text.isNotEmpty && titleController.text.isNotEmpty) {
       isSaving = true;
     } else {
-      print("Invalid");
       return;
     }
 

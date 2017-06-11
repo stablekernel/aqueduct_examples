@@ -10,7 +10,6 @@ class Store {
     userController = new UserController(this)
     ..listen((u) {
       if (u?.id != authenticatedUser?.id) {
-        print("Auth user; ${u.email}");
         authenticatedUser = u;
       }
     });
@@ -89,7 +88,7 @@ class UserController extends ServiceController<User> {
       token ??= store.authenticatedUser?.token;
 
       if (token?.isExpired ?? true) {
-        throw 'Not authenticated';
+        throw new UnauthenticatedException();
       }
 
       var response = await http.get("http://localhost:8082/me",
@@ -123,8 +122,8 @@ class NoteController extends ServiceController<List<Note>> {
 
   Future<Note> createNote(String title, String contents) async {
     try {
-      if (!(store.authenticatedUser?.isAuthenticated ?? true)) {
-        throw "Not authenticated";
+      if (!(store.authenticatedUser?.isAuthenticated ?? false)) {
+        throw new UnauthenticatedException();
       }
 
       var response = await http.post("http://localhost:8082/notes",
@@ -153,8 +152,8 @@ class NoteController extends ServiceController<List<Note>> {
 
   Future<List<Note>> getNotes() async {
     try {
-      if (!(store.authenticatedUser?.isAuthenticated ?? true)) {
-        throw "Not authenticated";
+      if (!(store.authenticatedUser?.isAuthenticated ?? false)) {
+        throw new UnauthenticatedException();
       }
 
       var response = await http.get("http://localhost:8082/notes",
@@ -181,3 +180,5 @@ class NoteController extends ServiceController<List<Note>> {
     return null;
   }
 }
+
+class UnauthenticatedException implements Exception {}

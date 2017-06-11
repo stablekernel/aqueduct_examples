@@ -41,7 +41,7 @@ class _LoginWidgetState extends State<LoginWidget> {
 
     userSubscription = Store.defaultInstance.userController.listen((user) {
       if (mounted && user != null) {
-        Navigator.pushNamed(context, '/home');
+        Navigator.pop(context);
       }
     }, onError: (Object err) {
       setState(() {
@@ -83,15 +83,11 @@ class _LoginWidgetState extends State<LoginWidget> {
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
-      appBar: new AppBar(
-        title: new Text("Login"),
-      ),
-
       body: new Container(
         padding: new EdgeInsets.all(20.0),
         child: new Column(
             children: [
-              new Row(children: [new Expanded(child: usernameField)]),
+              new Center(child: new Row(children: [new Expanded(child: usernameField)])),
               new Row(children: [new Expanded(child: passwordField)]),
               new Row(children: [
                 new FlatButton(onPressed: register, child: const Text("REGISTER")),

@@ -62,6 +62,10 @@ class TodoSink extends RequestSink {
         .route("/notes/[:id]")
         .pipe(new Authorizer(authServer))
         .generate(() => new NoteController(authServer));
+
+    router
+      .route("/*")
+      .pipe(new HTTPFileController("web"));
   }
 
   /*
