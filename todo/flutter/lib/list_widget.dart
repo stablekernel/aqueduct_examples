@@ -56,23 +56,20 @@ class _NotesWidgetState extends State<NotesWidget> {
     Navigator.pushNamed(context, "/create");
   }
 
-  List<TableRow> get tableRows => notes?.map(noteRowForNote)?.toList() ?? [];
+  List<Container> get rows => notes?.map(noteRowForNote)?.toList() ?? [];
 
-  TableRow noteRowForNote(Note note) {
-    return new TableRow(
+  Container noteRowForNote(Note note) {
+    return new Container(
+      padding: const EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
+      child: new Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          new Container(
-              padding: const EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
-              child: new Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  new Text(note.title),
-                  new Padding(padding: const EdgeInsets.all(5.0)),
-                  new Text(dateString(note.createdAt), style: new TextStyle(color: Colors.grey))],
-              )
-
-          )
-    ]);
+          new Text(note.title),
+          new Padding(padding: const EdgeInsets.all(5.0)),
+          new Text(dateString(note.createdAt), style: new TextStyle(color: Colors.grey))
+        ],
+      )
+    );
   }
 
   String dateString(DateTime dateTime) {
@@ -87,8 +84,8 @@ class _NotesWidgetState extends State<NotesWidget> {
       ),
       body: new Container(
 //        padding: const EdgeInsets.all(20.0),
-        child: new Table(
-            children: tableRows
+        child: new ListView(
+            children: rows
         ),
       ),
       floatingActionButton: new FloatingActionButton(
