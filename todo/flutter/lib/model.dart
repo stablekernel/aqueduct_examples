@@ -1,4 +1,3 @@
-
 class Note {
   Note();
 

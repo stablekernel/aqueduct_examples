@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'model.dart';
 import 'store.dart';
 
 class LoginWidget extends StatefulWidget {
