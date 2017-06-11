@@ -14,51 +14,55 @@ class _CreateNoteState extends State<CreateNoteWidget> {
   final TextEditingController contentsController = new TextEditingController();
   final TextEditingController titleController = new TextEditingController();
 
+  StreamSubscription subscription;
   bool isSaving = false;
-  bool get isTitleValid => titleController.text.isNotEmpty;
-  bool get areContentsValid => contentsController.text.isNotEmpty;
+
+  @override
+  void initState() {
+    super.initState();
+    subscription = Store.defaultInstance.noteController.listen((notes) {
+      isSaving = false;
+      Navigator.pop(context);
+    }, onError: (err) {
+      isSaving = false;
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    subscription.cancel();
+  }
 
   TextField get titleField =>
     new TextField(
       controller: titleController,
-      onChanged: (_) => setState(() {}),
       decoration: new InputDecoration(
-        hintText: 'Title',
-        errorText: !isTitleValid ? "required" : null
+        hintText: 'Title'
       ),
     );
 
   TextField get contentsField =>
     new TextField(
       controller: contentsController,
-      onChanged: (_) => setState(() {}),
       decoration: new InputDecoration(
-        hintText: 'Contents',
-        errorText: !areContentsValid ? "required" : null
+        hintText: 'Contents'
       ),
     );
 
-  Future saveNote() async {
-    if (areContentsValid && isTitleValid) {
+  void saveNote() {
+    if (contentsController.text.isNotEmpty && titleController.text.isNotEmpty) {
       isSaving = true;
     } else {
+      print("Invalid");
       return;
     }
 
-    setState(() {});
-    try {
-      var n = new Note()
-        ..title = titleController.text
-        ..contents = contentsController.text;
-
-      await Store.defaultInstance.createNote(n);
-      Navigator.pop(context);
-    } catch (e) {
-
-    } finally {
-      isSaving = false;
-      setState(() {});
-    }
+    setState(() {
+      isSaving = true;
+      Store.defaultInstance.noteController.createNote(
+          titleController.text, contentsController.text);
+    });
   }
 
   @override

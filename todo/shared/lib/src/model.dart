@@ -33,10 +33,29 @@ class User {
   int id;
   String email;
   List<Note> notes = [];
+  AuthorizationToken token;
+
+  bool get isAuthenticated => token != null && !token.isExpired;
 
   Map<String, dynamic> asMap() =>
     {
       "id": id,
       "email": email
     };
+}
+
+class AuthorizationToken {
+  AuthorizationToken.fromMap(Map<String, dynamic> map) {
+    accessToken = map["access_token"];
+    refreshToken = map["refresh_token"];
+    expiresAt = new DateTime.now().add(new Duration(seconds: map["expires_in"]));
+  }
+  String accessToken;
+  String refreshToken;
+  DateTime expiresAt;
+
+  String get authorizationHeaderValue => "Bearer $accessToken";
+
+  bool get isExpired =>
+    expiresAt.difference(new DateTime.now()).inSeconds < 0;
 }

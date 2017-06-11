@@ -14,7 +14,7 @@ Dart_Packages.xml
 .idea/dictionaries
 migrations/migration.yaml
 error.log
-.aqueductpid
-.aqueductsignal
+*.aqueduct.pid
+*.aqueductsignal
 api.log*
 .idea/

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:todo_shared/shared.dart';
 
@@ -11,18 +13,33 @@ class NotesWidget extends StatefulWidget {
 }
 
 class _NotesWidgetState extends State<NotesWidget> {
+  List<Note> notes;
+  StreamSubscription subscription;
+
   @override
   void initState() {
     super.initState();
-    Store.defaultInstance.getNotes().then((_) => setState((){}));
+    subscription = Store.defaultInstance.noteController.listen((notes) {
+      setState(() {
+        this.notes = notes;
+      });
+    }, onError: (err) {
+
+    });
+    Store.defaultInstance.noteController.getNotes();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    subscription.cancel();
   }
 
   void createNewNote() {
     Navigator.pushNamed(context, "/create");
   }
 
-  List<TableRow> get tableRows =>
-      Store.defaultInstance.user.notes.map(noteRowForNote).toList();
+  List<TableRow> get tableRows => notes?.map(noteRowForNote)?.toList() ?? [];
 
   TableRow noteRowForNote(Note note) {
     return new TableRow(

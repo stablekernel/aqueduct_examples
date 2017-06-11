@@ -15,16 +15,14 @@ class _LoginWidgetState extends State<LoginWidget> {
   final TextEditingController passwordController = new TextEditingController();
 
   String errorMessage = "";
-  bool get isPasswordFieldValid => usernameController.text.isNotEmpty;
-  bool get isUsernameFieldValid => passwordController.text.isNotEmpty;
+  StreamSubscription userSubscription;
 
   TextField get usernameField =>
       new TextField(
         keyboardType: TextInputType.emailAddress,
         controller: usernameController,
         decoration: new InputDecoration(
-            hintText: 'username',
-            errorText: !isUsernameFieldValid  ? "required" : null
+            hintText: 'username'
         ),
       );
 
@@ -33,35 +31,53 @@ class _LoginWidgetState extends State<LoginWidget> {
         obscureText: true,
         controller: passwordController,
         decoration: new InputDecoration(
-            hintText: 'password',
-            errorText: !isPasswordFieldValid ? "required" : null
+            hintText: 'password'
         ),
       );
 
-  Future register() async {
-    if (isPasswordFieldValid && isUsernameFieldValid) {
-      try {
-        await Store.defaultInstance.register(usernameController.text, passwordController.text);
+  @override
+  void initState() {
+    super.initState();
+
+    userSubscription = Store.defaultInstance.userController.listen((user) {
+      if (mounted && user != null) {
         Navigator.pushNamed(context, '/home');
-      } catch (error) {
-        setState(() {
-          errorMessage = error;
-        });
       }
+    }, onError: (Object err) {
+      setState(() {
+        errorMessage = err.toString();
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    userSubscription.cancel();
+  }
+
+  void register() {
+    if (usernameController.text.isNotEmpty && passwordController.text.isNotEmpty) {
+      Store.defaultInstance.userController.register(
+            usernameController.text, passwordController.text);
+      Navigator.pushNamed(context, '/home');
+    } else {
+      setState(() {
+        errorMessage = "Missing username and/or password.";
+      });
     }
   }
 
-  Future login() async {
-    if (isPasswordFieldValid && isUsernameFieldValid) {
-      try {
-        await Store.defaultInstance.login(usernameController.text, passwordController.text);
-        Navigator.pushNamed(context, '/home');
-      } catch (error) {
-        setState(() {
-          errorMessage = error;
-        });
-      }
+  void login() {
+    if (usernameController.text.isNotEmpty && passwordController.text.isNotEmpty) {
+      Store.defaultInstance.userController.login(
+          usernameController.text, passwordController.text);
+    } else {
+      setState(() {
+        errorMessage = "Missing username and/or password.";
+      });
     }
+
   }
 
   @override

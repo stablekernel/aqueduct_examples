@@ -1,132 +1,183 @@
+import 'package:http/http.dart' as http;
+
 import 'dart:async';
 import 'dart:convert';
-
-import 'package:http/http.dart' as http;
+import 'service_stream.dart';
 import 'model.dart';
 
 class Store {
-  static Store get defaultInstance  {
-    _defaultInstance ??= new Store();
-    return _defaultInstance;
+  Store() {
+    userController = new UserController(this)
+    ..listen((u) {
+      if (u?.id != authenticatedUser?.id) {
+        print("Auth user; ${u.email}");
+        authenticatedUser = u;
+      }
+    });
+
+    noteController = new NoteController(this);
   }
-  static Store _defaultInstance;
 
-  String get _clientAuthorization => "Basic ${new Base64Encoder().convert("com.dart.demo:abcd".codeUnits)}";
-  String get _bearerAuthorization => "Bearer ${_token.accessToken}";
+  static Store defaultInstance = new Store();
 
-  AuthorizationToken _token;
-  bool get isAuthenticated =>
-      (_token?.expiresAt?.difference(new DateTime.now().toUtc())?.inSeconds > 0)
-          ?? false;
+  String get clientAuthorization => "Basic ${new Base64Encoder().convert("com.dart.demo:abcd".codeUnits)}";
 
-  User user;
+  User authenticatedUser;
+  UserController userController;
+  NoteController noteController;
+}
+
+class UserController extends ServiceController<User> {
+  UserController(this.store);
+
+  Store store;
 
   Future<User> login(String username, String password) async {
-    var body = {
-      "username": username,
-      "password": password,
-      "grant_type": "password"
-    };
-    var response = await http.post("http://localhost:8082/auth/token",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
-          "Authorization": _clientAuthorization
-        },
-        body: body.keys.map((k) => "$k=${Uri.encodeQueryComponent(body[k])}").join("&"));
+    try {
+      var body = {
+        "username": username,
+        "password": password,
+        "grant_type": "password"
+      };
 
-    var tokenOrError = JSON.decode(response.body);
-    if (response.statusCode != 200) {
-      throw tokenOrError["error"];
+      var response = await http.post("http://localhost:8082/auth/token",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
+            "Authorization": store.clientAuthorization
+          },
+          body: body.keys.map((k) => "$k=${Uri.encodeQueryComponent(body[k])}").join("&"));
+
+      var tokenOrError = JSON.decode(response.body);
+      if (response.statusCode != 200) {
+        throw tokenOrError["error"];
+      }
+
+      return getAuthenticatedUser(token: new AuthorizationToken.fromMap(tokenOrError));
+    } catch (e, st) {
+      addError(e, st);
     }
-    _token = new AuthorizationToken.fromMap(tokenOrError);
 
-    return getAuthenticatedUser();
+    return null;
   }
 
   Future<User> register(String username, String password) async {
-    var response = await http.post("http://localhost:8082/register",
-        headers: {
-          "Content-Type": "application/json; charset=utf-8",
-          "Authorization": _clientAuthorization
-        },
-        body: JSON.encode({"username": username, "password": password}));
+    try {
+      var response = await http.post("http://localhost:8082/register",
+          headers: {
+            "Content-Type": "application/json; charset=utf-8",
+            "Authorization": store.clientAuthorization
+          },
+          body: JSON.encode({"username": username, "password": password}));
 
-    var tokenOrError = JSON.decode(response.body);
-    if (response.statusCode != 200) {
-      throw tokenOrError["error"];
+      var tokenOrError = JSON.decode(response.body);
+      if (response.statusCode == 409) {
+        throw "User already exists";
+      } else if (response.statusCode != 200) {
+        throw tokenOrError["error"];
+      }
+
+      return getAuthenticatedUser(token: new AuthorizationToken.fromMap(tokenOrError));
+    } catch (e, st) {
+      addError(e, st);
     }
-    _token = new AuthorizationToken.fromMap(tokenOrError);
 
-    return getAuthenticatedUser();
+    return null;
   }
 
-  Future<User> getAuthenticatedUser() async {
-    if (!isAuthenticated) {
-      throw "Not authenticated";
+  Future<User> getAuthenticatedUser({AuthorizationToken token}) async {
+    try {
+      token ??= store.authenticatedUser?.token;
+
+      if (token?.isExpired ?? true) {
+        throw 'Not authenticated';
+      }
+
+      var response = await http.get("http://localhost:8082/me",
+          headers: {
+            "Authorization": token.authorizationHeaderValue
+          });
+      var userOrError = JSON.decode(response.body);
+      if (response.statusCode != 200) {
+        throw userOrError["error"];
+      }
+
+      var user = new User.fromMap(userOrError)
+        ..token = token;
+      add(user);
+
+      return user;
+    } catch (e, st) {
+      addError(e, st);
     }
 
-    var response = await http.get("http://localhost:8082/me",
-      headers: {
-      "Authorization": _bearerAuthorization
-    });
-    var userOrError = JSON.decode(response.body);
-    if (response.statusCode == 409) {
-      throw "User already exists";
-    } else if (response.statusCode != 200) {
-      throw userOrError["error"];
-    }
-
-    user = new User.fromMap(userOrError);
-    return user;
-  }
-
-  Future<Note> createNote(Note note) async {
-    if (!isAuthenticated) {
-      throw "Not authenticated";
-    }
-
-    print("Creating note: ${note.asMap()}");
-    var response = await http.post("http://localhost:8082/notes",
-        headers: {
-          "Content-Type": "application/json; charset=utf-8",
-          "Authorization": _bearerAuthorization
-        },
-        body: JSON.encode(note.asMap()));
-
-    var noteOrError = JSON.decode(response.body);
-    if (response.statusCode != 200) {
-      throw noteOrError["error"];
-    }
-
-    var createdNote = new Note.fromMap(noteOrError);
-    user.notes.add(createdNote);
-    user.notes.sort((n1, n2) => n1.updatedAt.compareTo(n2.createdAt));
-    print("NOtes ${user.notes}");
-    return createdNote;
-  }
-
-  Future<List<Note>> getNotes() async {
-    var response = await http.get("http://localhost:8082/notes",
-        headers: {
-          "Authorization": _bearerAuthorization
-        });
-    var notesOrError = JSON.decode(response.body);
-    if (response.statusCode != 200) {
-      throw notesOrError["error"];
-    }
-
-    user.notes = (notesOrError as List<Map>).map((o) => new Note.fromMap(o)).toList();
-    return user.notes;
+    return null;
   }
 }
 
-class AuthorizationToken {
-  AuthorizationToken.fromMap(Map<String, dynamic> map) {
-    accessToken = map["access_token"];
-    refreshToken = map["refresh_token"];
-    expiresAt = new DateTime.now().toUtc().add(new Duration(seconds: map["expires_in"]));
+class NoteController extends ServiceController<List<Note>> {
+  NoteController(this.store);
+
+  Store store;
+
+  List<Note> _notes = [];
+
+  Future<Note> createNote(String title, String contents) async {
+    try {
+      if (!(store.authenticatedUser?.isAuthenticated ?? true)) {
+        throw "Not authenticated";
+      }
+
+      var response = await http.post("http://localhost:8082/notes",
+          headers: {
+            "Content-Type": "application/json; charset=utf-8",
+            "Authorization": store.authenticatedUser.token.authorizationHeaderValue
+          },
+          body: JSON.encode({"title": title, "contents": contents}));
+
+      var noteOrError = JSON.decode(response.body);
+      if (response.statusCode != 200) {
+        throw noteOrError["error"];
+      }
+
+      var note = new Note.fromMap(noteOrError);
+      _notes.insert(0, note);
+      add(new List.from(_notes));
+
+      return note;
+    } catch (e, st) {
+      addError(e, st);
+    }
+
+    return null;
   }
-  String accessToken;
-  String refreshToken;
-  DateTime expiresAt;
+
+  Future<List<Note>> getNotes() async {
+    try {
+      if (!(store.authenticatedUser?.isAuthenticated ?? true)) {
+        throw "Not authenticated";
+      }
+
+      var response = await http.get("http://localhost:8082/notes",
+          headers: {
+            "Authorization": store.authenticatedUser.token.authorizationHeaderValue
+          });
+      var notesOrError = JSON.decode(response.body);
+      if (response.statusCode != 200) {
+        throw notesOrError["error"];
+      }
+
+      _notes = (notesOrError as List<Map>)
+          .map((o) => new Note.fromMap(o))
+          .toList();
+
+      var outbound = new List.from(_notes);
+      add(outbound);
+
+      return outbound;
+    } catch (e, st) {
+      addError(e, st);
+    }
+
+    return null;
+  }
 }
