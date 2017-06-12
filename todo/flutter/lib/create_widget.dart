@@ -20,11 +20,11 @@ class _CreateNoteState extends State<CreateNoteWidget> {
   @override
   void initState() {
     super.initState();
+
     subscription = Store.instance.noteController.listen((notes) {
       Navigator.pop(context);
     }, onError: (err) {
       isSaving = false;
-      print("$err");
     });
   }
 
@@ -34,21 +34,19 @@ class _CreateNoteState extends State<CreateNoteWidget> {
     subscription.cancel();
   }
 
-  TextField get titleField =>
-    new TextField(
-      controller: titleController,
-      decoration: new InputDecoration(
-        hintText: 'Title'
-      ),
-    );
+  TextField get titleField => new TextField(
+    controller: titleController,
+    decoration: new InputDecoration(
+      hintText: 'Title'
+    ),
+  );
 
-  TextField get contentsField =>
-    new TextField(
-      controller: contentsController,
-      decoration: new InputDecoration(
-        hintText: 'Contents'
-      ),
-    );
+  TextField get contentsField => new TextField(
+    controller: contentsController,
+    decoration: new InputDecoration(
+      hintText: 'Contents'
+    ),
+  );
 
   void saveNote() {
     if (contentsController.text.isNotEmpty && titleController.text.isNotEmpty) {

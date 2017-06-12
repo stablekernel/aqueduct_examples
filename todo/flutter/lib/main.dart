@@ -26,7 +26,7 @@ class TodoApp extends StatelessWidget {
     return new MaterialApp(
       title: 'Todo',
       theme: new ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.teal,
       ),
       routes: {
         "/": (_) => new NotesWidget(title: "Todo"),

@@ -91,7 +91,7 @@ class _LoginWidgetState extends State<LoginWidget> {
               new Row(children: [
                 new FlatButton(onPressed: register, child: const Text("REGISTER")),
                 new FlatButton(onPressed: login, child: const Text("LOGIN"))]),
-                new Text(errorMessage)
+                new Text(errorMessage, style: new TextStyle(color: Colors.red),)
             ]
         ),
       ),     

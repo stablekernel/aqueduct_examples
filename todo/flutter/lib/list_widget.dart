@@ -51,17 +51,23 @@ class _NotesWidgetState extends State<NotesWidget> {
 
   List<Container> get rows => notes?.map(noteRowForNote)?.toList() ?? [];
 
-  Container noteRowForNote(Note note) {
-    return new Container(
-      padding: const EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
-      child: new Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          new Text(note.title),
-          new Padding(padding: const EdgeInsets.all(5.0)),
-          new Text(dateString(note.createdAt), style: new TextStyle(color: Colors.grey))
-        ],
-      )
+  ListTile noteRowForNote(Note note) {
+    //todo: Make text editable, savable and stretch to bounds
+    return new ListTile(
+      title: new Text(note.title),
+      subtitle: new Text(dateString(note.createdAt), style: new TextStyle(color: Colors.grey)),
+      onTap: () {
+        Navigator.of(context).push(new MaterialPageRoute<Null>(
+          builder: (BuildContext context) {
+            return new Scaffold(
+              appBar: new AppBar(title: new Text(note.title)),
+              body: new Center(
+                child: new Text(note.contents)
+              ),
+            );
+          },
+        ));
+      },
     );
   }
 
