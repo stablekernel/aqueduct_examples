@@ -53,6 +53,12 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.4.2"
+  path_provider:
+    description:
+      name: path_provider
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.2.1+1"
   sky_engine:
     description:
       path: "../../../../Projects/flutter/bin/cache/pkg/sky_engine"

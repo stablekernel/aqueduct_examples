@@ -36,24 +36,17 @@ class _NotesWidgetState extends State<NotesWidget> {
         if (user != null) {
           Store.defaultInstance.noteController.getNotes();
         } else {
-          setState(() {
-            notes = null;
-          });
+          showDialog(context: context, barrierDismissible: false,
+              child: new LoginWidget());
         }
       })
     ];
-
-    Store.defaultInstance.noteController.getNotes();
   }
 
   @override
   void dispose() {
     super.dispose();
     subscriptions.forEach((s) => s.cancel());
-  }
-
-  void createNewNote() {
-    Navigator.pushNamed(context, "/create");
   }
 
   List<Container> get rows => notes?.map(noteRowForNote)?.toList() ?? [];
@@ -83,13 +76,14 @@ class _NotesWidgetState extends State<NotesWidget> {
         title: new Text(widget.title),
       ),
       body: new Container(
-//        padding: const EdgeInsets.all(20.0),
         child: new ListView(
-            children: rows
+          children: rows
         ),
       ),
       floatingActionButton: new FloatingActionButton(
-        onPressed: createNewNote,
+        onPressed: () {
+          Navigator.pushNamed(context, "/create");
+        },
         tooltip: 'Create',
         child: new Icon(Icons.add),
       ),

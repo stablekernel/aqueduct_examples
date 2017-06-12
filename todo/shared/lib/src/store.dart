@@ -7,21 +7,31 @@ import 'model.dart';
 
 class Store {
   Store() {
-    userController = new UserController(this)
-    ..listen((u) {
-      if (u?.id != authenticatedUser?.id) {
-        authenticatedUser = u;
-      }
-    });
-
     noteController = new NoteController(this);
+    userController = new UserController(this)
+      ..listen((u) {
+        if (u?.id != authenticatedUser?.id) {
+          authenticatedUser = u;
+        }
+      });
+
+    userController.add(authenticatedUser);
   }
 
   static Store defaultInstance = new Store();
 
   String get clientAuthorization => "Basic ${new Base64Encoder().convert("com.dart.demo:abcd".codeUnits)}";
 
-  User authenticatedUser;
+  User get authenticatedUser {
+    // Load from file/local storage,
+    // let Store be initialized with storage/fetching closures provided by
+    // angular2/flutter implementations.
+    return _authenticatedUser;
+  }
+  set authenticatedUser(User u) {
+    _authenticatedUser = u;
+  }
+  User _authenticatedUser;
   UserController userController;
   NoteController noteController;
 }
