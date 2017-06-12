@@ -21,7 +21,7 @@ aqueduct serve --port 8082
 
 class TodoSink extends RequestSink {
   TodoSink(ApplicationConfiguration appConfig) : super(appConfig) {
-    logger.onRecord.listen((rec) => print("$rec"));
+    logger.onRecord.listen((rec) => print("$rec ${rec.error ?? ""} ${rec.stackTrace ?? ""}"));
 
     var options = new TodoConfiguration(appConfig.configurationFilePath);
 
@@ -65,7 +65,7 @@ class TodoSink extends RequestSink {
 
     router
       .route("/*")
-      .pipe(new HTTPFileController("web"));
+      .pipe(new ReroutingFileController("web"));
   }
 
   /*
@@ -100,4 +100,25 @@ class TodoConfiguration extends ConfigurationItem {
   TodoConfiguration(String fileName) : super.fromFile(fileName);
 
   DatabaseConnectionConfiguration database;
+}
+
+
+class ReroutingFileController extends HTTPFileController {
+  ReroutingFileController(String directory) : super(directory);
+
+  @override
+  Future<RequestOrResponse> processRequest(Request req) async {
+    Response potentialResponse = await super.processRequest(req);
+    var acceptsHTML = req.innerRequest
+        .headers.value(HttpHeaders.ACCEPT).contains("text/html");
+
+    if (potentialResponse.statusCode == 404 && acceptsHTML)  {
+        return new Response(302, {
+          HttpHeaders.LOCATION: "/",
+          "X-JS-Route": req.path.remainingPath
+        }, null);
+    }
+
+    return potentialResponse;
+  }
 }
