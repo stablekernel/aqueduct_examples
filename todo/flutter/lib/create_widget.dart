@@ -24,6 +24,7 @@ class _CreateNoteState extends State<CreateNoteWidget> {
       Navigator.pop(context);
     }, onError: (err) {
       isSaving = false;
+      print("$err");
     });
   }
 

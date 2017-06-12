@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:http/http.dart' as http;
 
@@ -13,81 +14,64 @@ class UserService extends ServiceController<User> {
   Store store;
 
   Future<User> login(String username, String password) async {
-    try {
-      var body = {
-        "username": username,
-        "password": password,
-        "grant_type": "password"
-      };
+    var req = new Request.post("/auth/token", {
+      "username": username,
+      "password": password,
+      "grant_type": "password"
+    }, contentType: new ContentType("application", "x-www-form-urlencoded"));
 
-      var response = await http.post("http://localhost:8082/auth/token",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
-            "Authorization": store.clientAuthorization
-          },
-          body: body.keys.map((k) => "$k=${Uri.encodeQueryComponent(body[k])}").join("&"));
+    var response = await store.executeClientRequest(req);
+    if (response.error != null) {
+      addError(response.error);
+      return null;
+    }
 
-      var tokenOrError = JSON.decode(response.body);
-      if (response.statusCode != 200) {
-        throw tokenOrError["error"];
-      }
-
-      return getAuthenticatedUser(token: new AuthorizationToken.fromMap(tokenOrError));
-    } catch (e, st) {
-      addError(e, st);
+    switch (response.statusCode) {
+      case 200: return getAuthenticatedUser(token: new AuthorizationToken.fromMap(response.body));
+      default: addError(new APIError(response.body["error"]));
     }
 
     return null;
   }
 
   Future<User> register(String username, String password) async {
-    try {
-      var response = await http.post("http://localhost:8082/register",
-          headers: {
-            "Content-Type": "application/json; charset=utf-8",
-            "Authorization": store.clientAuthorization
-          },
-          body: JSON.encode({"username": username, "password": password}));
+    var req = new Request.post(
+        "/register", {"username": username, "password": password});
 
-      var tokenOrError = JSON.decode(response.body);
-      if (response.statusCode == 409) {
-        throw "User already exists";
-      } else if (response.statusCode != 200) {
-        throw tokenOrError["error"];
-      }
+    var response = await store.executeClientRequest(req);
+    if (response.error != null) {
+      addError(response.error);
+      return null;
+    }
 
-      return getAuthenticatedUser(token: new AuthorizationToken.fromMap(tokenOrError));
-    } catch (e, st) {
-      addError(e, st);
+    switch (response.statusCode) {
+      case 200: return getAuthenticatedUser(token: new AuthorizationToken.fromMap(response.body));
+      case 409: addError(new APIError("User already exists")); break;
+      default: addError(new APIError(response.body["error"]));
     }
 
     return null;
   }
 
   Future<User> getAuthenticatedUser({AuthorizationToken token}) async {
-    try {
-      token ??= store.authenticatedUser?.token;
+    var req = new Request.get("/me");
+    var response = await store.executeUserRequest(req, token: token);
 
-      if (token?.isExpired ?? true) {
-        throw new UnauthenticatedException();
-      }
+    if (response.error != null) {
+      addError(response.error);
+      return null;
+    }
 
-      var response = await http.get("http://localhost:8082/me",
-          headers: {
-            "Authorization": token.authorizationHeaderValue
-          });
-      var userOrError = JSON.decode(response.body);
-      if (response.statusCode != 200) {
-        throw userOrError["error"];
-      }
+    switch (response.statusCode) {
+      case 200: {
+        var user = new User.fromMap(response.body)
+          ..token = token;
+        add(user);
 
-      var user = new User.fromMap(userOrError)
-        ..token = token;
-      add(user);
+        return user;
+      } break;
 
-      return user;
-    } catch (e, st) {
-      addError(e, st);
+      default: addError(new APIError(response.body["error"]));
     }
 
     return null;
@@ -102,64 +86,53 @@ class NoteService extends ServiceController<List<Note>> {
   List<Note> _notes = [];
 
   Future<Note> createNote(String title, String contents) async {
-    try {
-      if (!(store.authenticatedUser?.isAuthenticated ?? false)) {
-        throw new UnauthenticatedException();
-      }
+    var req = new Request.post("/notes", {"title": title, "contents": contents});
+    var response = await store.executeUserRequest(req);
 
-      var response = await http.post("http://localhost:8082/notes",
-          headers: {
-            "Content-Type": "application/json; charset=utf-8",
-            "Authorization": store.authenticatedUser.token.authorizationHeaderValue
-          },
-          body: JSON.encode({"title": title, "contents": contents}));
+    if (response.error != null) {
+      addError(response.error);
+      return null;
+    }
 
-      var noteOrError = JSON.decode(response.body);
-      if (response.statusCode != 200) {
-        throw noteOrError["error"];
-      }
+    switch (response.statusCode) {
+      case 200: {
+        var note = new Note.fromMap(response.body);
+        _notes.insert(0, note);
+        add(new List.from(_notes));
 
-      var note = new Note.fromMap(noteOrError);
-      _notes.insert(0, note);
-      add(new List.from(_notes));
+        return note;
+      } break;
 
-      return note;
-    } catch (e, st) {
-      addError(e, st);
+      default: addError(new APIError(response.body["error"]));
     }
 
     return null;
   }
 
   Future<List<Note>> getNotes() async {
-    try {
-      if (!(store.authenticatedUser?.isAuthenticated ?? false)) {
-        throw new UnauthenticatedException();
-      }
+    var req = new Request.get("/notes");
+    var response = await store.executeUserRequest(req);
 
-      var response = await http.get("http://localhost:8082/notes",
-          headers: {
-            "Authorization": store.authenticatedUser.token.authorizationHeaderValue
-          });
-      var notesOrError = JSON.decode(response.body);
-      if (response.statusCode != 200) {
-        throw notesOrError["error"];
-      }
+    if (response.error != null) {
+      addError(response.error);
+      return null;
+    }
 
-      _notes = (notesOrError as List<Map>)
-          .map((o) => new Note.fromMap(o))
-          .toList();
+    switch (response.statusCode) {
+      case 200: {
+        _notes = (response.body as List<Map>)
+            .map((o) => new Note.fromMap(o))
+            .toList();
 
-      var outbound = new List.from(_notes);
-      add(outbound);
+        var outbound = new List.from(_notes);
+        add(outbound);
 
-      return outbound;
-    } catch (e, st) {
-      addError(e, st);
+        return outbound;
+      } break;
+
+      default: addError(new APIError(response.body["error"]));
     }
 
     return null;
   }
 }
-
-class UnauthenticatedException implements Exception {}
