@@ -74,6 +74,12 @@ class _NotesWidgetState extends State<NotesWidget> {
     return new Scaffold(
       appBar: new AppBar(
         title: new Text(widget.title),
+        actions: [
+          new FlatButton(
+              onPressed: Store.instance.userController.logout,
+              child: new Text("LOGOUT",
+              style: new TextStyle(color: Colors.white),))
+        ],
       ),
       body: new Container(
         child: new ListView(

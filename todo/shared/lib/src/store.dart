@@ -29,12 +29,11 @@ class Store {
   User get authenticatedUser => _authenticatedUser;
   set authenticatedUser(User u) {
     _authenticatedUser = u;
-    if (storageProvider != null) {
-      if (u != null) {
-        storageProvider.store(_storedUserKey, JSON.encode(u.asMap()));
-      } else if (u == null) {
-        storageProvider.delete(_storedUserKey);
-      }
+    if (u != null) {
+      storageProvider?.store(_storedUserKey, JSON.encode(u.asMap()));
+    } else {
+      noteController.clearCache();
+      storageProvider?.delete(_storedUserKey);
     }
   }
 

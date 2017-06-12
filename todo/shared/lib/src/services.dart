@@ -1,8 +1,5 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
-
-import 'package:http/http.dart' as http;
 
 import 'model.dart';
 import 'service_controller.dart';
@@ -12,6 +9,11 @@ class UserService extends ServiceController<User> {
   UserService(this.store);
 
   Store store;
+
+  void logout() {
+    store.authenticatedUser = null;
+    add(null);
+  }
 
   Future<User> login(String username, String password) async {
     var req = new Request.post("/auth/token", {
@@ -134,5 +136,9 @@ class NoteService extends ServiceController<List<Note>> {
     }
 
     return null;
+  }
+
+  void clearCache() {
+    _notes = [];
   }
 }

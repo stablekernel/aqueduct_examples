@@ -2,7 +2,7 @@ import 'dart:async';
 
 class ServiceController<T> extends Stream<T> implements EventSink<T> {
   ServiceController() {
-     _controller = new StreamController<T>.broadcast(onListen: whenSubscribed);
+     _controller = new StreamController<T>.broadcast();
   }
 
   StreamController<T> _controller;
@@ -30,5 +30,5 @@ class ServiceController<T> extends Stream<T> implements EventSink<T> {
   @override
   Future close() => _controller.close();
 
-  void whenSubscribed() {}
+  void clearCache() {}
 }
