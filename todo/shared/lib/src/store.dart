@@ -1,12 +1,17 @@
+import 'dart:convert';
+import 'dart:async';
+
 import 'package:http/http.dart' as http;
 
-import 'dart:async';
-import 'dart:convert';
 import 'service_stream.dart';
 import 'model.dart';
 
 class Store {
-  Store() {
+  Store({
+    Future<String> load(String pathOrKey),
+    Future<bool> store(String pathOrKey, String contents),
+    Future<bool> delete(String pathOrKey)
+  }) : _storeFunction = store, _loadFunction = load, _deleteFunction = delete {
     noteController = new NoteController(this);
     userController = new UserController(this)
       ..listen((u) {
@@ -15,25 +20,49 @@ class Store {
         }
       });
 
-    userController.add(authenticatedUser);
+    _loadPersistentUser();
   }
 
-  static Store defaultInstance = new Store();
+  static Store instance = new Store();
 
-  String get clientAuthorization => "Basic ${new Base64Encoder().convert("com.dart.demo:abcd".codeUnits)}";
-
-  User get authenticatedUser {
-    // Load from file/local storage,
-    // let Store be initialized with storage/fetching closures provided by
-    // angular2/flutter implementations.
-    return _authenticatedUser;
-  }
-  set authenticatedUser(User u) {
-    _authenticatedUser = u;
-  }
-  User _authenticatedUser;
   UserController userController;
   NoteController noteController;
+  String get clientAuthorization => "Basic ${new Base64Encoder().convert("com.dart.demo:abcd".codeUnits)}";
+
+  User get authenticatedUser => _authenticatedUser;
+  set authenticatedUser(User u) {
+    _authenticatedUser = u;
+    if (u != null && _storeFunction != null) {
+      _storeFunction(_storedUserKey, JSON.encode(u.asMap()));
+    } else if (u == null && _deleteFunction != null) {
+      _deleteFunction(_storedUserKey);
+    }
+  }
+
+  /* Private */
+
+  final _StoreFunction _storeFunction;
+  final _LoadFunction _loadFunction;
+  final _DeleteFunction _deleteFunction;
+  User _authenticatedUser;
+  String get _storedUserKey => "user.json";
+
+  void _loadPersistentUser() {
+    if (_loadFunction != null) {
+      _loadFunction(_storedUserKey).then((contents) {
+        try {
+          authenticatedUser = new User.fromMap(JSON.decode(contents));
+          userController.add(authenticatedUser);
+        } catch (_) {
+          userController.add(null);
+        }
+      }).catchError((_) {
+        userController.add(null);
+      });
+    } else {
+      userController.add(null);
+    }
+  }
 }
 
 class UserController extends ServiceController<User> {
@@ -192,3 +221,7 @@ class NoteController extends ServiceController<List<Note>> {
 }
 
 class UnauthenticatedException implements Exception {}
+
+typedef Future<String> _LoadFunction(String pathOrKey);
+typedef Future<bool> _StoreFunction(String pathOrKey, String contents);
+typedef Future<bool> _DeleteFunction(String pathOrKey);

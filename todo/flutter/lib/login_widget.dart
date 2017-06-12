@@ -39,7 +39,7 @@ class _LoginWidgetState extends State<LoginWidget> {
   void initState() {
     super.initState();
 
-    userSubscription = Store.defaultInstance.userController.listen((user) {
+    userSubscription = Store.instance.userController.listen((user) {
       if (mounted && user != null) {
         Navigator.pop(context);
       }
@@ -58,7 +58,7 @@ class _LoginWidgetState extends State<LoginWidget> {
 
   void register() {
     if (usernameController.text.isNotEmpty && passwordController.text.isNotEmpty) {
-      Store.defaultInstance.userController.register(
+      Store.instance.userController.register(
             usernameController.text, passwordController.text);
       Navigator.pushNamed(context, '/home');
     } else {
@@ -70,7 +70,7 @@ class _LoginWidgetState extends State<LoginWidget> {
 
   void login() {
     if (usernameController.text.isNotEmpty && passwordController.text.isNotEmpty) {
-      Store.defaultInstance.userController.login(
+      Store.instance.userController.login(
           usernameController.text, passwordController.text);
     } else {
       setState(() {

@@ -20,7 +20,7 @@ class _CreateNoteState extends State<CreateNoteWidget> {
   @override
   void initState() {
     super.initState();
-    subscription = Store.defaultInstance.noteController.listen((notes) {
+    subscription = Store.instance.noteController.listen((notes) {
       Navigator.pop(context);
     }, onError: (err) {
       isSaving = false;
@@ -58,7 +58,7 @@ class _CreateNoteState extends State<CreateNoteWidget> {
 
     setState(() {
       isSaving = true;
-      Store.defaultInstance.noteController.createNote(
+      Store.instance.noteController.createNote(
           titleController.text, contentsController.text);
     });
   }

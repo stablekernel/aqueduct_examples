@@ -28,6 +28,10 @@ class User {
   User.fromMap(Map<String, dynamic> map) {
     id = map["id"];
     email = map["email"];
+
+    if (map.containsKey("token")) {
+      token = new AuthorizationToken.fromMap(map["token"]);
+    }
   }
 
   int id;
@@ -40,7 +44,8 @@ class User {
   Map<String, dynamic> asMap() =>
     {
       "id": id,
-      "email": email
+      "email": email,
+      "token": token.asMap()
     };
 }
 
@@ -48,7 +53,12 @@ class AuthorizationToken {
   AuthorizationToken.fromMap(Map<String, dynamic> map) {
     accessToken = map["access_token"];
     refreshToken = map["refresh_token"];
-    expiresAt = new DateTime.now().add(new Duration(seconds: map["expires_in"]));
+
+    if (map.containsKey("expires_in")) {
+      expiresAt = new DateTime.now().add(new Duration(seconds: map["expires_in"]));
+    } else if (map.containsKey("expiresAt")) {
+      expiresAt = DateTime.parse(map["expiresAt"]);
+    }
   }
   String accessToken;
   String refreshToken;
@@ -58,4 +68,11 @@ class AuthorizationToken {
 
   bool get isExpired =>
     expiresAt.difference(new DateTime.now()).inSeconds < 0;
+
+  Map<String, dynamic> asMap() =>
+      {
+        "access_token": accessToken,
+        "refresh_token": refreshToken,
+        "expiresAt": expiresAt.toIso8601String()
+      };
 }

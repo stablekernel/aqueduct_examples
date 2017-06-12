@@ -21,7 +21,7 @@ class _NotesWidgetState extends State<NotesWidget> {
   void initState() {
     super.initState();
     subscriptions = [
-      Store.defaultInstance.noteController.listen((notes) {
+      Store.instance.noteController.listen((notes) {
         setState(() {
           this.notes = notes;
         });
@@ -32,9 +32,9 @@ class _NotesWidgetState extends State<NotesWidget> {
         }
       }),
 
-      Store.defaultInstance.userController.listen((user) {
+      Store.instance.userController.listen((user) {
         if (user != null) {
-          Store.defaultInstance.noteController.getNotes();
+          Store.instance.noteController.getNotes();
         } else {
           showDialog(context: context, barrierDismissible: false,
               child: new LoginWidget());
