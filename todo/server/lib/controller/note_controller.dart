@@ -2,29 +2,30 @@ import '../todo.dart';
 import '../model/note.dart';
 import '../model/user.dart';
 
-class NoteController extends HTTPController {
-  NoteController(this.authServer);
+class NoteController extends ResourceController {
+  NoteController(this.context, this.authServer);
 
-  AuthServer authServer;
+  final AuthServer authServer;
+  final ManagedContext context;
 
-  @httpGet
-  Future<Response> getNotes({@HTTPQuery("created_after") DateTime createdAfter}) async {
-    var query = new Query<Note>()
-      ..where.owner.id = whereEqualTo(request.authorization.resourceOwnerIdentifier);
+  @Operation.get()
+  Future<Response> getNotes({@Bind.query("created_after") DateTime createdAfter}) async {
+    var query =  Query<Note>(context)
+      ..where((n) => n.owner).identifiedBy(request.authorization.resourceOwnerIdentifier);
 
     if (createdAfter != null) {
-      query.where.createdAt = whereGreaterThan(createdAfter);
+      query.where((n) => n.createdAt).greaterThan(createdAfter);
     }
 
-    return new Response.ok(await query.fetch());
+    return Response.ok(await query.fetch());
   }
 
-  @httpGet
-  Future<Response> getNote(@HTTPPath("id") int id) async {
+  @Operation.get("id")
+  Future<Response> getNote(@Bind.path("id") int id) async {
     var requestingUserID = request.authorization.resourceOwnerIdentifier;
-    var query = new Query<Note>()
-      ..where.id = whereEqualTo(id)
-      ..where.owner.id = whereEqualTo(requestingUserID);
+    var query = new Query<Note>(context)
+      ..where((n) => n.id).equalTo(id)
+      ..where((n) => n.owner).identifiedBy(requestingUserID);
 
     var u = await query.fetchOne();
     if (u == null) {
@@ -34,44 +35,41 @@ class NoteController extends HTTPController {
     return new Response.ok(u);
   }
 
-  @httpPost
-  Future<Response> createNote(@HTTPBody() Note note) async {
+  @Operation.post()
+  Future<Response> createNote(@Bind.body() Note note) async {
     note.owner = new User()
       ..id = request.authorization.resourceOwnerIdentifier;
 
-    var query = new Query<Note>()
-      ..values = note;
-
-    return new Response.ok(await query.insert());
+    return Response.ok(await Query.insertObject(context, note));
   }
 
-  @httpPut
-  Future<Response> updateNote(@HTTPPath("id") int id, @HTTPBody() Note note) async {
+  @Operation.put("id")
+  Future<Response> updateNote(@Bind.path("id") int id, @Bind.body() Note note) async {
     var requestingUserID = request.authorization.resourceOwnerIdentifier;
-    var query = new Query<Note>()
-      ..where.id = whereEqualTo(id)
-      ..where.owner.id = whereEqualTo(requestingUserID)
+    var query = Query<Note>(context)
+      ..where((n) => n.id).equalTo(id)
+      ..where((n) => n.owner).identifiedBy(requestingUserID)
       ..values = note;
 
     var u = await query.updateOne();
     if (u == null) {
-      return new Response.notFound();
+      return Response.notFound();
     }
 
-    return new Response.ok(u);
+    return Response.ok(u);
   }
 
-  @httpDelete
-  Future<Response> deleteNote(@HTTPPath("id") int id) async {
+  @Operation.delete("id")
+  Future<Response> deleteNote(@Bind.path("id") int id) async {
     var requestingUserID = request.authorization.resourceOwnerIdentifier;
-    var query = new Query<Note>()
-      ..where.id = whereEqualTo(id)
-      ..where.owner.id = whereEqualTo(requestingUserID);
+    var query = Query<Note>(context)
+      ..where((n) => n.id).equalTo(id)
+      ..where((n) => n.owner).identifiedBy(requestingUserID);
 
     if (await query.delete() > 0) {
-      return new Response.ok(null);
+      return Response.ok(null);
     }
 
-    return new Response.notFound();
+    return Response.notFound();
   }
 }

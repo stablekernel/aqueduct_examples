@@ -12,22 +12,22 @@ export 'package:aqueduct/aqueduct.dart';
 /// requests against the test server.  This instance will use configuration values
 /// from config.src.yaml.
 class TestApplication {
-  Application<ChatSink> application;
-  ChatSink get sink => application.mainIsolateSink;
+  Application<Chat> application;
+  Chat get channel => application.channel;
   TestClient client;
 
   /// Starts running this test harness.
   ///
-  /// This method will start an [Application] with [ChatSink].
+  /// This method will start an [Application] with [Chat].
   ///
   /// You must call [stop] on this instance when tearing down your tests.
   Future start() async {
-    RequestController.letUncaughtExceptionsEscape = true;
-    application = new Application<ChatSink>();
-    application.configuration.port = 0;
-    application.configuration.configurationFilePath = "config.src.yaml";
+    Controller.letUncaughtExceptionsEscape = true;
+    application = new Application<Chat>();
+    application.options.port = 0;
+    application.options.configurationFilePath = "config.src.yaml";
 
-    await application.start(runOnMainIsolate: true);
+    await application.test();
 
     client = new TestClient(application);
   }

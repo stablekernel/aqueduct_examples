@@ -15,20 +15,20 @@ class Note extends ManagedObject<_Note> implements _Note {
 }
 
 class _Note {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
-  @ManagedColumnAttributes(nullable: true)
+  @Column(nullable: true)
   String title;
 
   String contents;
 
-  @ManagedColumnAttributes(indexed: true)
+  @Column(indexed: true)
   DateTime createdAt;
 
-  @ManagedColumnAttributes(indexed: true)
+  @Column(indexed: true)
   DateTime updatedAt;
 
-  @ManagedRelationship(#notes, onDelete: ManagedRelationshipDeleteRule.cascade, isRequired: true)
+  @Relate(#notes, onDelete: DeleteRule.cascade, isRequired: true)
   User owner;
 }

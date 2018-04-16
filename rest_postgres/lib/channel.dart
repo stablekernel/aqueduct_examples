@@ -2,19 +2,26 @@ import 'rest_postgres.dart';
 
 import 'model/model.dart';
 
-class RestPostgresSink extends RequestSink {
-  RestPostgresSink(ApplicationConfiguration appConfig) : super(appConfig) {
-    var options = new RestPostgresConfiguration(appConfig.configurationFilePath);
-    ManagedContext.defaultContext = contextWithConnectionInfo(options.database);
-  }
-  
+class Postgrest extends ApplicationChannel {
+  ManagedContext context;
+
   @override
-  void setupRouter(Router router) {
-    ManagedContext.defaultContext.dataModel.entities.forEach((e) {
+  Future prepare() async {
+    final config = RestPostgresConfiguration(options.configurationFilePath);
+    context = contextWithConnectionInfo(config.database);
+  }
+
+  @override
+  Controller get entryPoint {
+    final router = Router();
+
+    context.dataModel.entities.forEach((e) {
       router
           .route("/${e.tableName.toLowerCase()}/[:id]")
-          .generate(() => new ManagedObjectController.forEntity(e));
+          .link(() => new ManagedObjectController.forEntity(e, context));
     });
+
+    return router;
   }
 
   ManagedContext contextWithConnectionInfo(

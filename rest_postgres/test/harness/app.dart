@@ -13,8 +13,8 @@ export 'package:aqueduct/aqueduct.dart';
 /// code's current database schema during startup. This instance will use configuration values
 /// from config.src.yaml.
 class TestApplication {
-  Application<RestPostgresSink> application;
-  RestPostgresSink get sink => application.mainIsolateSink;
+  Application<Postgrest> application;
+  Postgrest get channel => application.channel;
   TestClient client;
 
   /// Starts running this test harness.
@@ -34,12 +34,12 @@ class TestApplication {
   ///
   /// You must call [stop] on this instance when tearing down your tests.
   Future start() async {
-    RequestController.letUncaughtExceptionsEscape = true;
-    application = new Application<RestPostgresSink>();
-    application.configuration.port = 0;
-    application.configuration.configurationFilePath = "config.src.yaml";
+    Controller.letUncaughtExceptionsEscape = true;
+    application = new Application<Postgrest>();
+    application.options.port = 0;
+    application.options.configurationFilePath = "config.src.yaml";
 
-    await application.start(runOnMainIsolate: true);
+    await application.test();
 
     await initializeDatabase();
 
@@ -55,14 +55,14 @@ class TestApplication {
   }
 
   Future initializeDatabase() async {
-    await createDatabaseSchema(ManagedContext.defaultContext);
+    await createDatabaseSchema(channel.context);
   }
 
   /// Discards any persistent data stored during a test.
   ///
   /// Invoke this method in tearDown() to clear data between tests.
   Future discardPersistentData() async {
-    await ManagedContext.defaultContext.persistentStore.close();
+    await channel.context.persistentStore.close();
     await initializeDatabase();
   }
 
