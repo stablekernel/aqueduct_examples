@@ -30,7 +30,7 @@ class Store {
   set authenticatedUser(User u) {
     _authenticatedUser = u;
     if (u != null) {
-      storageProvider?.store(_storedUserKey, JSON.encode(u.asMap()));
+      storageProvider?.store(_storedUserKey, json.encode(u.asMap()));
     } else {
       noteController.clearCache();
       storageProvider?.delete(_storedUserKey);
@@ -67,7 +67,7 @@ class Store {
       } else if (request.method == "POST") {
         var body = request.body;
         if (request.contentType == ContentType.JSON) {
-          body = JSON.encode(body);
+          body = json.encode(body);
         } else if (request.contentType.primaryType == "application"
             && request.contentType.subType == "x-www-form-url-encoded") {
           body = (body as Map<String, String>).keys.map((k) => "$k=${Uri.encodeQueryComponent(body[k])}").join("&");
@@ -93,7 +93,7 @@ class Store {
     if (storageProvider != null) {
       storageProvider.load(_storedUserKey).then((contents) {
         try {
-          authenticatedUser = new User.fromMap(JSON.decode(contents));
+          authenticatedUser = new User.fromMap(json.decode(contents));
           userController.add(authenticatedUser);
         } catch (_) {
           userController.add(null);
@@ -142,7 +142,7 @@ class Response {
 
     var contentType = ContentType.parse(response.headers[HttpHeaders.CONTENT_TYPE]);
     if (contentType.primaryType == "application" && contentType.subType == "json") {
-      body = JSON.decode(response.body);
+      body = json.decode(response.body);
     }
   }
 

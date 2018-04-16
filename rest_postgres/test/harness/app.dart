@@ -19,9 +19,9 @@ class TestApplication {
 
   /// Starts running this test harness.
   ///
-  /// This method will start an [Application] with [RestPostgresSink].
+  /// This method will start an [Application] with [Postgrest].
   /// The declared [ManagedObject]s in this application will be
-  /// used to generate a temporary database schema. The [RestPostgresSink] instance will use
+  /// used to generate a temporary database schema. The [Postgrest] instance will use
   /// this temporary database. Stopping this application will remove the data from the
   /// temporary database.
   ///

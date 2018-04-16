@@ -2,6 +2,7 @@ import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
 
 class Migration1 extends Migration {
+  @override
   Future upgrade() async {
     database.createTable(new SchemaTable("_authclient", [
       new SchemaColumn("id", ManagedType.string, isPrimaryKey: true, autoincrement: false, isIndexed: false, isNullable: false, isUnique: false),
@@ -43,8 +44,11 @@ class Migration1 extends Migration {
 
   }
 
+  @override
   Future downgrade() async {
   }
+
+  @override
   Future seed() async {
   }
 }
