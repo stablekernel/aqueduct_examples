@@ -38,7 +38,7 @@ class Store {
   }
 
   Future<Response> executeClientRequest(Request request) async {
-    request.headers[HttpHeaders.AUTHORIZATION] = clientAuthorization;
+    request.headers[HttpHeaders.authorizationHeader] = clientAuthorization;
     return executeRequest(request);
   }
 
@@ -49,7 +49,7 @@ class Store {
       throw new UnauthenticatedException();
     }
 
-    request.headers[HttpHeaders.AUTHORIZATION] = t.authorizationHeaderValue;
+    request.headers[HttpHeaders.authorizationHeader] = t.authorizationHeaderValue;
     var response = await executeRequest(request);
 
     if (response.statusCode == 401) {
@@ -66,7 +66,7 @@ class Store {
             await http.get(_baseURL + request.path, headers: request.headers));
       } else if (request.method == "POST") {
         var body = request.body;
-        if (request.contentType == ContentType.JSON) {
+        if (request.contentType == ContentType.json) {
           body = json.encode(body);
         } else if (request.contentType.primaryType == "application"
             && request.contentType.subType == "x-www-form-url-encoded") {
@@ -118,7 +118,7 @@ class Request {
     method = "GET";
   }
   Request.post(this.path, this.body, {ContentType contentType}) {
-    this.contentType = contentType ?? ContentType.JSON;
+    this.contentType = contentType ?? ContentType.json;
     method = "POST";
   }
 
@@ -129,7 +129,7 @@ class Request {
   set contentType(ContentType t) {
     _contentType = t;
     if (_contentType != null) {
-      headers[HttpHeaders.CONTENT_TYPE] = _contentType.mimeType;
+      headers[HttpHeaders.contentTypeHeader] = _contentType.mimeType;
     }
   }
   ContentType _contentType;
@@ -140,7 +140,7 @@ class Response {
   Response.fromHTTPResponse(http.Response response) {
     statusCode = response.statusCode;
 
-    var contentType = ContentType.parse(response.headers[HttpHeaders.CONTENT_TYPE]);
+    var contentType = ContentType.parse(response.headers[HttpHeaders.contentTypeHeader]);
     if (contentType.primaryType == "application" && contentType.subType == "json") {
       body = json.decode(response.body);
     }
