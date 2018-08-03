@@ -1,29 +1,17 @@
 import 'harness/app.dart';
 
 Future main() async {
-  TestApplication app = new TestApplication();
-
-  setUpAll(() async {
-    await app.start();
-  });
-
-  tearDownAll(() async {
-    await app.stop();
-  });
+  Harness app = Harness()..install();
 
   tearDown(() async {
-    await app.discardPersistentData();
+    await app.resetData();
   });
 
   group("Success flow", () {
     test("Can create model", () async {
-      var request = app.client.request("/_model")
-        ..json = {
-          "name": "Bob"
-        };
+      var response = await app.agent.post("/_model", body: {"name": "Bob"});
 
-      var response = await request.post();
-      expect(response, hasResponse(200, {
+      expect(response, hasResponse(200, body: {
         "id": isNotNull,
         "name": "Bob",
         "createdAt": isTimestamp
@@ -31,19 +19,14 @@ Future main() async {
     });
 
     test("Can get model", () async {
-      var request = app.client.request("/_model")
-        ..json = {
-          "name": "Bob"
-        };
+      var response = await app.agent.post("/_model", body: {"name": "Bob"});
+      Map<String, dynamic> model = response.body.as();
 
-      var response = await request.post();
-      var createdModelID = response.asMap["id"];
-
-      response = await app.client.request("/_model/$createdModelID").get();
-      expect(response, hasResponse(200, {
-        "id": response.asMap["id"],
-        "name": response.asMap["name"],
-        "createdAt": response.asMap["createdAt"]
+      response = await app.agent.get("/_model/${model["id"]}");
+      expect(response, hasResponse(200, body: {
+        "id": model["id"],
+        "name": model["name"],
+        "createdAt": model["createdAt"]
       }));
     });
   });

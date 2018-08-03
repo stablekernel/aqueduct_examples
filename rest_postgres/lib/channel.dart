@@ -1,5 +1,6 @@
 import 'rest_postgres.dart';
 
+// ignore: unused_import
 import 'model/model.dart';
 
 class Postgrest extends ApplicationChannel {
@@ -25,7 +26,7 @@ class Postgrest extends ApplicationChannel {
   }
 
   ManagedContext contextWithConnectionInfo(
-      DatabaseConnectionConfiguration connectionInfo) {
+      DatabaseConfiguration connectionInfo) {
     var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
     var psc = new PostgreSQLPersistentStore.fromConnectionInfo(
         connectionInfo.username,
@@ -38,8 +39,8 @@ class Postgrest extends ApplicationChannel {
   }
 }
 
-class RestPostgresConfiguration extends ConfigurationItem {
-  RestPostgresConfiguration(String fileName) : super.fromFile(fileName);
+class RestPostgresConfiguration extends Configuration{
+  RestPostgresConfiguration(String fileName) : super.fromFile(File(fileName));
 
-  DatabaseConnectionConfiguration database;
+  DatabaseConfiguration database;
 }
