@@ -11,7 +11,7 @@ class NoteController extends ResourceController {
   @Operation.get()
   Future<Response> getNotes({@Bind.query("created_after") DateTime createdAfter}) async {
     var query =  Query<Note>(context)
-      ..where((n) => n.owner).identifiedBy(request.authorization.resourceOwnerIdentifier);
+      ..where((n) => n.owner).identifiedBy(request.authorization.ownerID);
 
     if (createdAfter != null) {
       query.where((n) => n.createdAt).greaterThan(createdAfter);
@@ -22,7 +22,7 @@ class NoteController extends ResourceController {
 
   @Operation.get("id")
   Future<Response> getNote(@Bind.path("id") int id) async {
-    var requestingUserID = request.authorization.resourceOwnerIdentifier;
+    var requestingUserID = request.authorization.ownerID;
     var query = new Query<Note>(context)
       ..where((n) => n.id).equalTo(id)
       ..where((n) => n.owner).identifiedBy(requestingUserID);
@@ -38,14 +38,14 @@ class NoteController extends ResourceController {
   @Operation.post()
   Future<Response> createNote(@Bind.body() Note note) async {
     note.owner = new User()
-      ..id = request.authorization.resourceOwnerIdentifier;
+      ..id = request.authorization.ownerID;
 
     return Response.ok(await Query.insertObject(context, note));
   }
 
   @Operation.put("id")
   Future<Response> updateNote(@Bind.path("id") int id, @Bind.body() Note note) async {
-    var requestingUserID = request.authorization.resourceOwnerIdentifier;
+    var requestingUserID = request.authorization.ownerID;
     var query = Query<Note>(context)
       ..where((n) => n.id).equalTo(id)
       ..where((n) => n.owner).identifiedBy(requestingUserID)
@@ -61,7 +61,7 @@ class NoteController extends ResourceController {
 
   @Operation.delete("id")
   Future<Response> deleteNote(@Bind.path("id") int id) async {
-    var requestingUserID = request.authorization.resourceOwnerIdentifier;
+    var requestingUserID = request.authorization.ownerID;
     var query = Query<Note>(context)
       ..where((n) => n.id).equalTo(id)
       ..where((n) => n.owner).identifiedBy(requestingUserID);

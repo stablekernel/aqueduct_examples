@@ -55,7 +55,7 @@ class Todo extends ApplicationChannel {
    */
 
   ManagedContext contextWithConnectionInfo(
-      DatabaseConnectionConfiguration connectionInfo) {
+    DatabaseConfiguration connectionInfo) {
     var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
     var psc = new PostgreSQLPersistentStore.fromConnectionInfo(
         connectionInfo.username,
@@ -68,24 +68,24 @@ class Todo extends ApplicationChannel {
   }
 }
 
-class TodoConfiguration extends ConfigurationItem {
-  TodoConfiguration(String fileName) : super.fromFile(fileName);
+class TodoConfiguration extends Configuration{
+  TodoConfiguration(String fileName) : super.fromFile(File(fileName));
 
-  DatabaseConnectionConfiguration database;
+  DatabaseConfiguration database;
 }
 
 
-class ReroutingFileController extends HTTPFileController {
+class ReroutingFileController extends FileController {
   ReroutingFileController(String directory) : super(directory);
 
   @override
   Future<RequestOrResponse> handle(Request req) async {
     Response potentialResponse = await super.handle(req);
-    final acceptsHTML = req.raw.headers.value(HttpHeaders.ACCEPT).contains("text/html");
+    final acceptsHTML = req.raw.headers.value(HttpHeaders.acceptHeader).contains("text/html");
 
     if (potentialResponse.statusCode == 404 && acceptsHTML)  {
         return new Response(302, {
-          HttpHeaders.LOCATION: "/",
+          HttpHeaders.locationHeader: "/",
           "X-JS-Route": req.path.remainingPath
         }, null);
     }
