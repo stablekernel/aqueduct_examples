@@ -8,4 +8,4 @@ export 'dart:io';
 
 export 'package:aqueduct/aqueduct.dart';
 
-export 'rest_postgres_sink.dart';
+export 'channel.dart';

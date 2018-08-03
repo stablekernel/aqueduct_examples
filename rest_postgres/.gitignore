@@ -17,3 +17,5 @@ error.log
 .aqueductpid
 .aqueductsignal
 api.log*
+.dart_tool/
+.idea/
