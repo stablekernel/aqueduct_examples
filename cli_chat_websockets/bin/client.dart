@@ -27,7 +27,7 @@ Future main(List<String> args) async {
 
   var regex = new RegExp(r"^/name ([A-Za-z0-9]+)$");
   stdin.listen((input) {
-    var asString = UTF8.decode(input).trimRight();
+    var asString = utf8.decode(input).trimRight();
     var nameMatch = regex.firstMatch(asString);
     if (nameMatch != null) {
       websocket.add(codec.encode({"event": "name", "data": nameMatch.group(1)}));

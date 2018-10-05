@@ -1,83 +1,41 @@
 import 'package:rest_postgres/rest_postgres.dart';
-import 'package:aqueduct/test.dart';
+import 'package:aqueduct_test/aqueduct_test.dart';
 
 export 'package:rest_postgres/rest_postgres.dart';
-export 'package:aqueduct/test.dart';
+export 'package:aqueduct_test/aqueduct_test.dart';
 export 'package:test/test.dart';
 export 'package:aqueduct/aqueduct.dart';
 
-/// A testing harness for rest_postgres.
+/// A testing harness for wildfire.
 ///
-/// Use instances of this class to start/stop the test rest_postgres server. Use [client] to execute
-/// requests against the test server. This instance will create a temporary version of your
-/// code's current database schema during startup. This instance will use configuration values
-/// from config.src.yaml.
-class TestApplication {
-  Application<RestPostgresSink> application;
-  RestPostgresSink get sink => application.mainIsolateSink;
-  TestClient client;
+/// A harness for testing an aqueduct application. Example test file:
+///
+///         void main() {
+///           Harness harness = Harness()..install();
+///
+///           test("GET /path returns 200", () async {
+///             final response = await harness.agent.get("/path");
+///             expectResponse(response, 200);
+///           });
+///         }
+///
+class Harness extends TestHarness<Postgrest> with TestHarnessORMMixin {
+  @override
+  ManagedContext get context => channel.context;
 
-  /// Starts running this test harness.
-  ///
-  /// This method will start an [Application] with [RestPostgresSink].
-  /// The declared [ManagedObject]s in this application will be
-  /// used to generate a temporary database schema. The [RestPostgresSink] instance will use
-  /// this temporary database. Stopping this application will remove the data from the
-  /// temporary database.
-  ///
-  /// An initial client ID/secret pair will be generated and added to the database
-  /// for the [client] to use. This value is "com.aqueduct.test"/"kilimanjaro".
-  ///
-  /// Invoke this method in setUpAll (or setUp, depending on your test behavior). You may
-  /// also use [discardPersistentData] to keep the application running but discard any
-  /// data stored by the ORM during the test.
-  ///
-  /// You must call [stop] on this instance when tearing down your tests.
-  Future start() async {
-    RequestController.letUncaughtExceptionsEscape = true;
-    application = new Application<RestPostgresSink>();
-    application.configuration.port = 0;
-    application.configuration.configurationFilePath = "config.src.yaml";
-
-    await application.start(runOnMainIsolate: true);
-
-    await initializeDatabase();
-
-    client = new TestClient(application);
+  @override
+  Future beforeStart() async {
+    // add initialization code that will run prior to the test application starting
   }
 
-  /// Stops running this application harness.
-  ///
-  /// This method stops the application from running and frees up any system resources it uses.
-  /// Invoke this method in tearDownAll (or tearDown, depending on your test behavior).
-  Future stop() async {
-    await application?.stop();
+  @override
+  Future afterStart() async {
+    // add initialization code that will run once the test application has started
+    await resetData();
   }
 
-  Future initializeDatabase() async {
-    await createDatabaseSchema(ManagedContext.defaultContext);
-  }
-
-  /// Discards any persistent data stored during a test.
-  ///
-  /// Invoke this method in tearDown() to clear data between tests.
-  Future discardPersistentData() async {
-    await ManagedContext.defaultContext.persistentStore.close();
-    await initializeDatabase();
-  }
-
-  /// Adds database tables to the temporary test database based on the declared [ManagedObject]s in this application.
-  ///
-  /// This method is executed during [start], and you shouldn't have to invoke it yourself.
-  static Future createDatabaseSchema(
-      ManagedContext context, {Logger logger}) async {
-    var builder = new SchemaBuilder.toSchema(
-        context.persistentStore, new Schema.fromDataModel(context.dataModel),
-        isTemporary: true);
-
-    for (var cmd in builder.commands) {
-      logger?.info("$cmd");
-      await context.persistentStore.execute(cmd);
-    }
+  @override
+  Future seed() async {
+    // restore any static data. called afterStart and after resetData
   }
 }

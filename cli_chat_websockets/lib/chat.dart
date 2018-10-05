@@ -8,4 +8,4 @@ export 'dart:io';
 
 export 'package:aqueduct/aqueduct.dart';
 
-export 'chat_sink.dart';
+export 'channel.dart';

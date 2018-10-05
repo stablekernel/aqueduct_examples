@@ -18,3 +18,4 @@ error.log
 *.aqueductsignal
 api.log*
 .idea/
+.dart_tool/
