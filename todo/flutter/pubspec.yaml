@@ -1,9 +1,12 @@
 name: todo
 description: A new Flutter project.
 
+environment:
+ sdk: ">=2.0.0-dev.68.0 <3.0.0"
+
 dependencies:
   http: any
-  path_provider: ^0.2.1
+  path_provider: ^0.4.1
   todo_shared:
     path: ../shared
   flutter:

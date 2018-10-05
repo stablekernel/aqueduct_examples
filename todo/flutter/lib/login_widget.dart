@@ -60,7 +60,6 @@ class _LoginWidgetState extends State<LoginWidget> {
     if (usernameController.text.isNotEmpty && passwordController.text.isNotEmpty) {
       Store.instance.userController.register(
             usernameController.text, passwordController.text);
-      Navigator.pushNamed(context, '/');
     } else {
       setState(() {
         errorMessage = "Missing username and/or password.";

@@ -28,7 +28,7 @@ class _NotesWidgetState extends State<NotesWidget> {
       }, onError: (err) {
         if (err is UnauthenticatedException) {
           showDialog(context: context, barrierDismissible: false,
-              child: new LoginWidget());
+              builder: (context) =>  new LoginWidget());
         }
       }),
 
@@ -37,7 +37,7 @@ class _NotesWidgetState extends State<NotesWidget> {
           Store.instance.noteController.getNotes();
         } else {
           showDialog(context: context, barrierDismissible: false,
-              child: new LoginWidget());
+              builder: (context) => new LoginWidget());
         }
       })
     ];
@@ -49,7 +49,7 @@ class _NotesWidgetState extends State<NotesWidget> {
     subscriptions.forEach((s) => s.cancel());
   }
 
-  List<Container> get rows => notes?.map(noteRowForNote)?.toList() ?? [];
+  List<ListTile> get rows => notes?.map(noteRowForNote)?.toList() ?? [];
 
   ListTile noteRowForNote(Note note) {
     //todo: Make text editable, savable and stretch to bounds

@@ -133,7 +133,7 @@ class Request {
     }
   }
   ContentType _contentType;
-  Map<String, dynamic> headers = {};
+  Map<String, String> headers = {};
 }
 
 class Response {
