@@ -122,14 +122,13 @@ class NoteService extends ServiceController<List<Note>> {
 
     switch (response.statusCode) {
       case 200: {
-        _notes = (response.body as List<Map>)
+        _notes = (response.body as List<dynamic>)
             .map((o) => new Note.fromMap(o))
             .toList();
 
-        var outbound = new List.from(_notes);
-        add(outbound);
+        add(_notes);
 
-        return outbound;
+        return _notes;
       } break;
 
       default: addError(new APIError(response.body["error"]));
