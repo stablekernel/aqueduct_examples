@@ -85,7 +85,7 @@ class Store {
   /* Private */
 
   final StorageProvider storageProvider;
-  String _baseURL = "http://localhost:8082";
+  String _baseURL = "http://localhost:8888";
   User _authenticatedUser;
   String get _storedUserKey => "user.json";
 

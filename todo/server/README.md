@@ -25,6 +25,8 @@ GRANT ALL ON DATABASE todo_app TO todo;
 Run the database migration to set the initial schema:
 
 ```
+# Note: if this is a new project, run db generate first, assuming you setup the `dart_test` db with `userid:password` of `dart:dart`.
+aqueduct db generate
 aqueduct db upgrade --connect postgres://todo:todo@localhost:5432/todo_app
 ```
 
