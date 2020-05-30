@@ -12,8 +12,3 @@ dependencies:
 dev_dependencies:
   test: ^1.0.0
   aqueduct_test: ^1.0.0
-dependency_overrides:
-  aqueduct:
-    path:  /Users/joeconway/Projects/aqueduct/aqueduct/
-  aqueduct_test:
-    path:  /Users/joeconway/Projects/aqueduct/aqueduct_test/
